@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div>
+    <h1 th:text="${user.getUsername()}"></h1>
+    <h1 th:text="${user.getAge()}"></h1>
+    <h1 th:text="${user.getIsAdmin()}"></h1>
+</div>
+<br>
+<td th:if="${!user.getIsAdmin()}">
+    <form th:method="patch" th:action="@{/admin/{username}/makeAdmin(username=${user.getUsername()})}">
+        <input type="submit" value="Make user Admin"/>
+    </form>
+</td>
+<td th:if="${user.getIsAdmin() && user.getUsername() != 'MainAdmin' && user.getId() != currentUser.getId()}">
+    <form th:method="patch" th:action="@{/admin/{username}/unmakeAdmin(username=${user.getUsername()})}">
+        <input type="submit" value="Unmake user Admin"/>
+    </form>
+</td>
+<br>
+
+<form th:method="get" th:action="@{/admin}">
+    <input type="submit" value="Back"/>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<h2>Add user info</h2>
+<br>
+
+    <form th:method="post" th:action="@{/admin/addNew}" th:object="${user}">
+
+        <label for="username">Username</label>
+        <input type="text" th:field="*{username}" id="username"/>
+        <br><br>
+        <div style="color:red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Bad username</div>
+        <br><br>
+
+        <label for="age">Age</label>
+        <input type="text" th:field="*{age}" id="age"/>
+        <br><br>
+        <div style="color:red" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Bad age</div>
+        <br><br>
+
+        <label for="password">Password</label>
+        <input type="text" th:field="*{password}" id="password"/>
+        <br><br>
+        <div style="color:red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Bad password</div>
+        <br><br>
+
+        <label for="isAdmin">Make Admin</label><br><br>
+        <input type="checkbox" th:field="*{isAdmin}" id="isAdmin" value="true">
+        <br>
+
+        <input type="submit" value="Add"/>
+    </form>
+
+</form>
+
+
+</body>
+</html>
