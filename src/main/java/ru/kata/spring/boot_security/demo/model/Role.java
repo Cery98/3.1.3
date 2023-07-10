@@ -47,4 +47,9 @@ public class Role implements GrantedAuthority {
     public void setId(Long id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return role.substring(5);
+    }
 }

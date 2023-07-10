@@ -52,8 +52,10 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void addUser(User user) {
-        userRepository.findByUsername(user.getUsername()).ifPresent((this::flushUser));
-        createUser(user);
+        userRepository.findByUsername(user.getUsername()).ifPresentOrElse((r) -> {}, () -> {
+            makeUserIfNot(user);
+            createUser(user);
+        });
     }
 
     @Transactional
@@ -63,49 +65,46 @@ public class UserService implements UserDetailsService {
         oldUser.setAge(newUser.getAge());
         oldUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         oldUser.setRoles(newUser.getRoles());
-        oldUser.setIsAdmin(newUser.getIsAdmin());
+        makeUserIfNot(oldUser);
     }
 
     @Transactional
-    public void deleteUser(User user) {
-        userRepository.findByUsername(user.getUsername()).ifPresent((this::flushUser));
-    }
-
-    @Transactional
-    public void makeUserAdmin(User newUser) {
-        User oldUser = userRepository.findByUsername(newUser.getUsername()).orElseThrow(RuntimeException::new);
-        oldUser.addRole(roleService.getRole("ROLE_ADMIN"));
-        oldUser.setIsAdmin(true);
-    }
-
-    @Transactional
-    public void unmakeUserAdmin(User newUser) {
-        User oldUser = userRepository.findByUsername(newUser.getUsername()).orElseThrow(RuntimeException::new);
-        oldUser.deleteRole(roleService.getRole("ROLE_ADMIN"));
-        oldUser.setIsAdmin(false);
+    public void deleteUser(String username) {
+        userRepository.findByUsername(username).ifPresent((this::flushUser));
     }
 
     @PostConstruct
     public void addRoles() {
         Role user = roleService.getRole("ROLE_USER");
         Role admin = roleService.getRole("ROLE_ADMIN");
-        userRepository.save(new User("Admin", passwordEncoder.encode("123"), 13, List.of(user, admin), true));
-        userRepository.save(new User("User", passwordEncoder.encode("123"), 11, List.of(user), false));
+        userRepository.save(new User("Admin", passwordEncoder.encode("123"), 13, List.of(user, admin)));
+        userRepository.save(new User("Alena", passwordEncoder.encode("123"), 19, List.of(user, admin)));
+        userRepository.save(new User("User2", passwordEncoder.encode("123"), 19, List.of(user)));
     }
 
 
     private void createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getIsAdmin()) {
-            user.setRoles(List.of(roleService.getRole("ROLE_USER"), roleService.getRole("ROLE_ADMIN")));
-        } else {
-            user.setRoles(List.of(roleService.getRole("ROLE_USER")));
-        }
         userRepository.save(user);
     }
 
     private void flushUser(User user) {
         user.setRoles(null);
         userRepository.delete(user);
+    }
+
+    private void makeUserIfNot(User oldUser) {
+        switch (oldUser.getRoles().size()) {
+            case 0:
+                oldUser.addRole(roleService.getRole("ROLE_USER"));
+            case 1:
+                if (!oldUser.getRoles().get(0).toString().equals("USER")) {
+                    oldUser.addRole(roleService.getRole("ROLE_USER"));
+                }
+            case 2:
+                break;
+            default:
+                throw new RuntimeException("User with id=" + oldUser.getId() + " has invalid count of roles");
+        }
     }
 }

@@ -7,6 +7,7 @@ import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 
 import javax.annotation.PostConstruct;
+import java.util.Collection;
 
 @Service
 public class RoleService {
@@ -26,5 +27,15 @@ public class RoleService {
     public void addRoles() {
         roleRepository.save(new Role("ROLE_USER"));
         roleRepository.save(new Role("ROLE_ADMIN"));
+    }
+
+    @Transactional
+    public Collection<Role> findAll() {
+        return roleRepository.findAll();
+    }
+
+    @Transactional
+    public Role getById(Long id) {
+        return roleRepository.findById(id).orElse(null);
     }
 }

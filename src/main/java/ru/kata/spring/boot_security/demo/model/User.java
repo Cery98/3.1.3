@@ -11,7 +11,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.Collection;
+import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
         }
 )
 @Component
-public class User implements UserDetails {
+public class User implements UserDetails, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,27 +47,32 @@ public class User implements UserDetails {
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "username"),
             inverseJoinColumns = @JoinColumn(name = "role"))
-    private Collection<Role> roles;
+    private List<Role> roles;
 
-    @Column
-    private boolean isAdmin;
 
 
     public User() {
 
     }
 
-    public User(String username, String password, Integer age, Collection<Role> roles, boolean isAdmin) {
+    public User(String username, String password, Integer age, List<Role> roles) {
         this.username = username;
         this.password = password;
         this.age = age;
         this.roles = roles;
-        this.isAdmin = isAdmin;
     }
 
-    public User(String username, String password, Collection<Role> roles) {
+    public User(String username, String password, List<Role> roles) {
         this.username = username;
         this.password = password;
+        this.roles = roles;
+    }
+
+    public User(Long id, String username, String password, Integer age, List<Role> roles) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.age = age;
         this.roles = roles;
     }
 
@@ -76,7 +81,7 @@ public class User implements UserDetails {
     }
 
     @Override
-    public Collection<Role> getAuthorities() {
+    public List<Role> getAuthorities() {
         return roles.stream()
                 .map(role -> new Role(role.getRole()))
                 .collect(Collectors.toList());
@@ -131,7 +136,7 @@ public class User implements UserDetails {
         this.age = age;
     }
 
-    public Collection<Role> getRoles() {
+    public List<Role> getRoles() {
         return roles;
     }
 
@@ -147,15 +152,15 @@ public class User implements UserDetails {
         this.id = id;
     }
 
-    public void setRoles(Collection<Role> roles) {
-        this.roles = roles;
-    }
-
-    public boolean getIsAdmin() {
-        return isAdmin;
-    }
-
-    public void setIsAdmin(boolean isAdmin) {
-        this.isAdmin = isAdmin;
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", age=" + age +
+                ", roles=" + roles +
+                ", isAdmin=" +
+                '}';
     }
 }
