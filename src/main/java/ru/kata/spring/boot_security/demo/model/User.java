@@ -1,98 +1,122 @@
 package ru.kata.spring.boot_security.demo.model;
 
-
-
-
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(
-        name = "users",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "username")
-        }
-)
-@Component
-public class User implements UserDetails, Serializable {
-
+@Table(name = "users")
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
+    @NotEmpty(message = "Name should not be empty")
+    @Size(min = 2, max = 30, message = "Name should be between 2 and 30 characters")
+    @Column(name = "name")
+    private String name;
 
-    @Column
-    @Size(min = 4, max = 16, message = "Short username")
-    @Pattern(regexp = "[A-z0-9]+", message = "Bad username")
+    @NotEmpty(message = "Last name should not be empty")
+    @Size(min = 2, max = 30, message = "Last name should be between 2 and 30 characters")
+    @Column(name = "lastname")
+    private String lastName;
+
+    @NotEmpty(message = "Username should not be empty")
+    @Size(min = 2, max = 30, message = "Username should be between 2 and 30 characters")
+    @Column(name = "username", unique = true)
     private String username;
 
-    @Column
-    @Size(min = 4, max = 16, message = "Password length must be between 4 and 16")
+    @NotEmpty(message = "Password should not be empty")
+    @Size(min = 2, max = 100, message = "Password should be between 2 and 30 characters")
+    @Column(name = "password")
     private String password;
-
-    @Column
-    @Min(value = 0, message = "Age must be > 0")
-    @Max(value = 255, message = "Too big age")
-    private Integer age;
-
-    @ManyToMany(cascade = CascadeType.MERGE)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
-            joinColumns = @JoinColumn(name = "username"),
-            inverseJoinColumns = @JoinColumn(name = "role"))
-    private List<Role> roles;
-
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
 
     public User() {
-
     }
 
-    public User(String username, String password, Integer age, List<Role> roles) {
-        this.username = username;
-        this.password = password;
-        this.age = age;
-        this.roles = roles;
-    }
-
-    public User(String username, String password, List<Role> roles) {
-        this.username = username;
-        this.password = password;
-        this.roles = roles;
-    }
-
-    public User(Long id, String username, String password, Integer age, List<Role> roles) {
+    public User(Long id, String name, String lastName, String username, String password, Set<Role> roles) {
         this.id = id;
+        this.name = name;
+        this.lastName = lastName;
         this.username = username;
         this.password = password;
-        this.age = age;
         this.roles = roles;
     }
 
-    public String getUsername() {
-        return username;
+    public User(String name, String lastName, String username, String password, Set<Role> roles) {
+        this.name = name;
+        this.lastName = lastName;
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override
-    public List<Role> getAuthorities() {
-        return roles.stream()
-                .map(role -> new Role(role.getRole()))
-                .collect(Collectors.toList());
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+
+        return roles;
     }
 
-    public void addRole(Role role) {
-        this.roles.add(role);
+    @Override
+    public String getPassword() {
+        return password;
     }
 
-    public void deleteRole(Role role) {
-        this.roles.remove(role);
+    @Override
+    public String getUsername() {
+        return username;
     }
 
     @Override
@@ -115,52 +139,15 @@ public class User implements UserDetails, Serializable {
         return true;
     }
 
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    public List<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<Role> roles) {
-        this.roles = roles;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
+                ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
-                ", age=" + age +
                 ", roles=" + roles +
-                ", isAdmin=" +
                 '}';
     }
 }
